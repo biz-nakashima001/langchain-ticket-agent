@@ -1,10 +1,12 @@
+import os
+
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 
 # LLM
 llm = ChatOllama(
     model="qwen3:8b",
-    base_url="http://192.168.11.31:11434",
+    base_url=os.environ["OLLAMA_BASE_URL"],
     temperature=0,
 )
 
