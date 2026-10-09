@@ -10,7 +10,9 @@ published: false
 
 バグチケットの本文を入力し、カテゴリ・重要度・原因候補・推奨対応を返す処理を、LangChainとOllamaで実装した。
 
-`ChatOllama`による呼び出しから始め、`ChatPromptTemplate`、`JsonOutputParser`、LCELによる合成、`batch()`による複数入力の処理までを5段階で確認した。本記事は既存の`langchain-ticket-agent`（コミット`fadd8c4`）を基にした技術検証記録である。プロジェクト名にはagentとあるが、今回の実装はツール選択や自律的な反復を行わない、プロンプト→モデル→パーサーの固定チェーンだ。
+`ChatOllama`による呼び出しから始め、`ChatPromptTemplate`、`JsonOutputParser`、LCELによる合成、`batch()`による複数入力の処理までを5段階で確認した。本記事は既存の`langchain-ticket-agent`（コミット`fadd8c4`）を基にした技術検証記録である。プロジェクト名にはagentとあるが、今回の実装はツール選択や自律的な反復を行わない、プロンプト→モデル→パーサーの固定チェーンである。
+
+※　記事の構成・文章整理にはAIを利用し、掲載コードと実行結果を確認しています
 
 ## 検証環境
 
@@ -39,8 +41,6 @@ Mac / Python 3.14
                           Python dict
 ```
 
-掲載コードでは既存コードの接続先を`OLLAMA_BASE_URL`環境変数に置き換えた。内部IP、個人名、ローカルの絶対パス、認証情報は掲載しない。
-
 ### 再現用の準備
 
 既存の仮想環境で確認したバージョンに合わせる例を示す。Python 3.14.4が導入済みであることを前提とする。
@@ -63,7 +63,7 @@ ollama pull qwen3:8b
 export OLLAMA_BASE_URL="http://YOUR_OLLAMA_HOST:11434"
 ```
 
-記事作成後、`step01_chat.py`〜`step05_batch.py`の接続先を`OLLAMA_BASE_URL`環境変数に統一した。実行前に上記の`export`で設定する。`.env.example`は設定項目の見本であり、スクリプトが`.env`を自動で読み込む実装にはしていない。未設定の場合は`KeyError: 'OLLAMA_BASE_URL'`で停止する。
+実行前に上記の`export`で設定する。`.env.example`は設定項目の見本であり、スクリプトが`.env`を自動で読み込む実装にはしていない。未設定の場合は`KeyError: 'OLLAMA_BASE_URL'`で停止する。
 
 ## 5段階で実装を確認する
 
@@ -133,7 +133,7 @@ class BugAnalysis(BaseModel):
 parser = JsonOutputParser(pydantic_object=BugAnalysis)
 ```
 
-既存コードでは`ChatOllama(format="json")`も設定する。モデル側のJSON出力指定、プロンプト側のスキーマ説明、受信側のJSONパースという3つの役割を組み合わせている。
+コードでは`ChatOllama(format="json")`も設定する。モデル側のJSON出力指定、プロンプト側のスキーマ説明、受信側のJSONパースという3つの役割を組み合わせている。
 
 ただし、**この`JsonOutputParser`の戻り値はPydanticモデルではなく、今回の出力ではPythonの辞書である。`pydantic_object`を指定しただけで、`severity`の値や必須項目が厳密に検証されるわけではない。** 確認した`langchain-core 1.6.9`の実装でも、`parse_result()`はJSONを読み取る処理で、`BugAnalysis.model_validate()`を呼び出していない。
 
@@ -272,7 +272,7 @@ for ticket, result in zip(tickets, results):
 
 ## BUG-001〜003の実行結果
 
-2026年10月10日（日本時間）、既存の`step05_batch.py`を既存の仮想環境から再実行した。下記は今回取得した標準出力であり、過去のハンズオン時のログではない。コード・プロンプト・入力チケットは変更していない。プロセスは終了コード0で完了し、標準エラー出力は空だった。
+`step05_batch.py`を仮想環境から実行した。プロセスは終了コード0で完了し、標準エラー出力は空だった。
 
 | ID | 入力の概要 | 出力カテゴリ | 出力重要度 |
 | --- | --- | --- | --- |
