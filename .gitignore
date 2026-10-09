@@ -1,0 +1,13 @@
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
