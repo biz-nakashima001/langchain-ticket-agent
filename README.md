@@ -31,3 +31,34 @@ python step05_batch.py
 | step05_batch.py | 複数チケットの処理 |
 
 技術検証記事は[docs/zenn/01-langchain-ollama.md](docs/zenn/01-langchain-ollama.md)にあります。
+
+## LangSmith Tracing
+
+LangSmithを利用して、LangChainの実行履歴を記録する。
+
+### 環境変数
+
+```bash
+export LANGSMITH_TRACING=true
+export LANGSMITH_PROJECT="langchain-ticket-agent"
+export LANGSMITH_ENDPOINT="https://apac.api.smith.langchain.com"
+export LANGSMITH_API_KEY="<your-api-key>"
+```
+
+※ APIキーはGitHubに登録しないこと。
+
+### 実行
+
+```bash
+python step04_chain.py
+```
+
+LangSmithのTracing画面で、以下を確認できた。
+
+- RunnableSequence：6.17秒
+- ChatOllama（qwen3:8b）：6.08秒
+- JsonOutputParser：0.00秒
+- Token Usage：997
+
+ローカルLLMの推論処理もLangSmithでトレースできる。
+ただし、入力・出力などのトレースデータはLangSmithクラウドへ送信される。
